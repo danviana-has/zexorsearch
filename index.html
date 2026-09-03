@@ -6,76 +6,73 @@
     <title>Whale Surfer & Zexor AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Cores no estilo Google para o logotipo */
         .g-blue { color: #4285F4; }
         .g-red { color: #EA4335; }
         .g-yellow { color: #FBBC05; }
         .g-green { color: #34A853; }
+        
+        /* Efeito de cursor piscante estilo terminal/LLM */
+        .cursor-blink::after {
+            content: '▌';
+            animation: blink 1s step-start infinite;
+            color: #2563eb;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
     </style>
 </head>
 <body class="bg-white text-gray-900 font-sans min-h-screen flex flex-col justify-between">
 
-    <!-- Área Principal Centralizada -->
     <main class="flex-grow flex flex-col items-center justify-center px-4 py-12">
-        
-        <!-- Logotipo Whale Surfer -->
         <div class="text-center mb-8 select-none">
             <h1 class="text-6xl font-bold tracking-tight font-serif">
                 <span class="g-blue">W</span><span class="g-red">h</span><span class="g-yellow">a</span><span class="g-blue">l</span><span class="g-green">e</span>
                 <span class="g-red">S</span><span class="g-blue">u</span><span class="g-red">r</span><span class="g-green">f</span><span class="g-yellow">e</span><span class="g-blue">r</span>
             </h1>
-            <p class="text-xs text-gray-400 mt-1 tracking-widest uppercase">Powered by Zexor AI Engine</p>
+            <p class="text-xs text-gray-400 mt-1 tracking-widest uppercase">Real-Time Zexor AI Engine</p>
         </div>
 
-        <!-- Barra de Busca Centralizada -->
         <div class="w-full max-w-2xl">
-            <div class="bg-white rounded-full border border-gray-200 pl-5 pr-3 py-2.5 flex items-center shadow-sm hover:shadow-md focus-within:shadow-md focus-within:border-gray-300 transition">
+            <div class="bg-white rounded-full border border-gray-200 pl-5 pr-3 py-2.5 flex items-center shadow-sm hover:shadow-md focus-within:shadow-md transition">
                 <svg class="h-5 w-5 text-gray-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
-                <input type="text" id="search-input" placeholder="Pesquise na web com Zexor AI..." class="w-full text-base text-gray-900 focus:outline-none bg-transparent">
+                <input type="text" id="search-input" placeholder="Pesquise com a Zexor AI em tempo real..." class="w-full text-base text-gray-900 focus:outline-none bg-transparent">
             </div>
 
-            <!-- Botões de Ação estilo Google -->
             <div class="flex justify-center space-x-3 mt-6">
-                <button onclick="realizarBusca(false)" class="bg-gray-50 text-sm text-gray-800 px-5 py-2.5 rounded border border-transparent hover:border-gray-200 hover:bg-gray-100 transition font-medium focus:outline-none">
+                <button onclick="realizarBusca()" class="bg-gray-50 text-sm text-gray-800 px-5 py-2.5 rounded border border-transparent hover:border-gray-200 hover:bg-gray-100 transition font-medium">
                     Pesquisar na Web
-                </button>
-                <button onclick="realizarBusca(true)" class="bg-gray-50 text-sm text-gray-800 px-5 py-2.5 rounded border border-transparent hover:border-gray-200 hover:bg-gray-100 transition font-medium focus:outline-none">
-                    Acessar site em alta
                 </button>
             </div>
         </div>
 
-        <!-- Área de Resultados & Resposta da Zexor AI -->
+        <!-- Área de Resultados -->
         <div id="results-area" class="w-full max-w-2xl mt-8 space-y-6 hidden text-left">
             <div id="status-message" class="text-xs text-gray-500 pl-2"></div>
 
-            <!-- Card de Resumo Sintetizado pela Zexor AI -->
+            <!-- Card de Resumo da Zexor AI (Aparece no topo) -->
             <div id="ai-card" class="bg-blue-50/60 border border-blue-100 p-5 rounded-xl hidden shadow-sm">
                 <div class="flex items-center space-x-2 mb-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                    <span id="ai-pulse" class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
                     <h3 class="text-sm font-semibold text-blue-900 uppercase tracking-wider">Resposta da Zexor AI</h3>
                 </div>
-                <p id="ai-text" class="text-gray-800 text-sm leading-relaxed whitespace-pre-line"></p>
+                <p id="ai-text" class="text-gray-800 text-sm leading-relaxed whitespace-pre-line cursor-blink"></p>
             </div>
 
-            <!-- Lista de Fontes e Links da Web -->
+            <!-- Lista de Resultados da Web (Carrega Primeiro) -->
             <div id="results-list" class="space-y-3"></div>
         </div>
     </main>
 
-    <!-- Rodapé Limpo -->
     <footer class="bg-gray-100 text-gray-500 text-xs py-3.5 px-6 border-t border-gray-200 w-full flex justify-between">
-        <div>Whale Surfer &copy; 2026 | GM Corporation</div>
-        <div>Engine: Qwen 2.5 1.5B (Local)</div>
+        <div>Whale Surfer &copy; GM Corporation</div>
+        <div>Engine: Qwen 2.5 1.5B (Real-Time Stream)</div>
     </footer>
 
     <script>
-        // Endpoint do seu túnel na Cloudflare apontando para o servidor Python local
         const BACKEND_URL = "https://search-api.gmcorporation.com.br";
 
-        async function realizarBusca(abrirPrimeiroImediato = false) {
+        async function realizarBusca() {
             const query = document.getElementById('search-input').value.trim();
             if (!query) return;
 
@@ -84,11 +81,15 @@
             const statusMessage = document.getElementById('status-message');
             const aiCard = document.getElementById('ai-card');
             const aiText = document.getElementById('ai-text');
+            const aiPulse = document.getElementById('ai-pulse');
 
             resultsList.innerHTML = '';
             aiCard.classList.add('hidden');
             aiText.innerText = '';
-            statusMessage.innerText = "Buscando na Web & sintetizando com Zexor AI...";
+            aiText.classList.add('cursor-blink');
+            aiPulse.classList.add('animate-pulse');
+            
+            statusMessage.innerText = "Buscando os sites mais relevantes...";
             resultsArea.classList.remove('hidden');
 
             try {
@@ -98,51 +99,68 @@
                     body: JSON.stringify({ query: query })
                 });
 
-                const data = await response.json();
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder("utf-8");
+                let buffer = "";
 
-                if (!data.success) {
-                    statusMessage.innerText = data.error || "Nenhum resultado encontrado.";
-                    return;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split("\n\n");
+                    buffer = lines.pop(); // Mantém dados incompletos no buffer
+
+                    for (const line of lines) {
+                        if (line.startsWith("data: ")) {
+                            const rawData = line.replace("data: ", "").trim();
+                            if (!rawData) continue;
+
+                            const data = JSON.parse(rawData);
+
+                            // 1. PRIMEIRA ETAPA: Exibe os Links Imersivos Instantaneamente
+                            if (data.type === "results") {
+                                statusMessage.innerText = `Resultados principais (${data.results.length}):`;
+                                
+                                data.results.forEach((item, index) => {
+                                    const card = `
+                                        <div class="bg-white p-4 rounded-lg border border-gray-100 hover:shadow-sm transition">
+                                            <span class="text-xs font-semibold text-gray-400">Fonte [${index + 1}]</span>
+                                            <a href="${item.href}" target="_blank" class="block text-base text-blue-800 font-medium hover:underline break-all mt-0.5">
+                                                ${item.title}
+                                            </a>
+                                            <span class="text-xs text-green-700 block my-1">${item.href}</span>
+                                            <p class="text-xs text-gray-600 line-clamp-2">${item.body}</p>
+                                        </div>
+                                    `;
+                                    resultsList.insertAdjacentHTML('beforeend', card);
+                                });
+
+                                // Abre o card da IA para começar a digitar logo em seguida
+                                aiCard.classList.remove('hidden');
+                            }
+
+                            // 2. SEGUNDA ETAPA: Digita cada Caractere da Zexor AI na Tela
+                            if (data.type === "ai_chunk") {
+                                aiText.innerText += data.content;
+                            }
+
+                            // 3. TERCEIRA ETAPA: Finaliza o efeito de digitação
+                            if (data.type === "done") {
+                                aiText.classList.remove('cursor-blink');
+                                aiPulse.classList.remove('animate-pulse');
+                            }
+                        }
+                    }
                 }
-
-                // Se clicou no botão "Acessar site em alta", abre direto o primeiro link retornado
-                if (abrirPrimeiroImediato && data.results && data.results.length > 0) {
-                    window.open(data.results[0].href, '_blank');
-                    resultsArea.classList.add('hidden');
-                    return;
-                }
-
-                statusMessage.innerText = `Resultados encontrados na web (${data.results.length}):`;
-
-                // Renderiza a resposta gerada pelo modelo Qwen 2.5 1.5B via Zexor AI
-                if (data.ai_response) {
-                    aiText.innerText = data.ai_response;
-                    aiCard.classList.remove('hidden');
-                }
-
-                // Renderiza os cards das fontes orgânicas
-                data.results.forEach((item, index) => {
-                    const card = `
-                        <div class="bg-white p-4 rounded-lg border border-gray-100 hover:shadow-sm transition">
-                            <span class="text-xs font-semibold text-gray-400">Fonte [${index + 1}]</span>
-                            <a href="${item.href}" target="_blank" class="block text-base text-blue-800 font-medium hover:underline break-all mt-0.5">
-                                ${item.title}
-                            </a>
-                            <span class="text-xs text-green-700 block my-1">${item.href}</span>
-                            <p class="text-xs text-gray-600 line-clamp-2">${item.body}</p>
-                        </div>
-                    `;
-                    resultsList.insertAdjacentHTML('beforeend', card);
-                });
 
             } catch (err) {
-                statusMessage.innerHTML = `<span class="text-red-500">Erro de conexão com a API da Zexor AI. Certifique-se de que o servidor Python e o Cloudflared estão ativos na sua máquina.</span>`;
+                statusMessage.innerHTML = `<span class="text-red-500">Erro no streaming da Zexor AI. Verifique se o servidor Python está rodando.</span>`;
             }
         }
 
-        // Atalho para acionar a busca ao apertar Enter
         document.getElementById('search-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') realizarBusca(false);
+            if (e.key === 'Enter') realizarBusca();
         });
     </script>
 </body>
